@@ -5,7 +5,20 @@ from gmath import *
 
 
 def scanline_convert(polygons, i, screen, zbuffer):
-    pass
+    for i in range(0, len(polygons), 3):
+        M = polygons[i]
+        N = polygons[i+1]
+        P = polygons[i+2]
+
+        My = M[1]
+        Ny = N[1]
+        Py = P[1]
+
+        T = M if My == max( max(My, Ny), Py ) else N if Ny == max( max(My, Ny), Py) else P
+        B = M if My == min( min(My, Ny), Py ) else N if Ny == min( min(My, Ny), Py) else P
+        M = M if T == N and B == P else N if T == M and B == P else P
+
+        
 
 
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
