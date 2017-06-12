@@ -94,6 +94,8 @@ def second_pass( commands, num_frames ):
                 #print 'knob: ' + knob_name + '\tvalue: ' + str(frames[f][knob_name])
     return frames
 
+
+
 def run(filename):
     """
     This function runs an mdl script
@@ -115,7 +117,7 @@ def run(filename):
     #print frames
     step = 0.1
 
-    #print symbols
+    print symbols
 
     for f in range(num_frames):
 

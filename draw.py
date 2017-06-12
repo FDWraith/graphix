@@ -12,6 +12,8 @@ def scanline_convert(polygons, i, screen, zbuffer):
     for i in range(0, len(polygons), 3):
 
         sortedList = sorted([polygons[i], polygons[i+1], polygons[i+2]], key = getCoords)
+        color = [ random.randrange(256), random.randrange(256), random.randrange(256) ]
+        #print sortedList
         
         T = sortedList[2]
         M = sortedList[1]
@@ -29,43 +31,44 @@ def scanline_convert(polygons, i, screen, zbuffer):
         Bz = B[2]
         Mz = M[2]
 
-        x1 = Bx
-        x1_step = (Tx - Bx) / (Ty - By)
-        x2 = Bx if My != By else Mx
-        x2_step = (Mx - Bx) / (My - By) if My != By else (Tx - Bx) / (Ty - By)
-        z1 = Bz 
-        z1_step = (Tz - Bz) / (Ty - By)
-        z2 = Bz if My != By else Mz
-        z2_step = (Mz - Bz) / (My - By) if My != By else (Tz - Bz) / (Ty - By) 
-        y = By
+        if Ty == By:
+            draw_line(int(Bx), int(By), int(Bz), int(Tx), int(Ty), int(Tz), screen, zbuffer, color)
+            exit
+        else:
+            x1 = Bx
+            x1_step = (Tx - Bx) / (Ty - By)
+            x2 = Bx if My != By else Mx
+            x2_step = (Mx - Bx) / (My - By) if My != By else (Tx - Bx) / (Ty - By)
+            z1 = Bz 
+            z1_step = (Tz - Bz) / (Ty - By)
+            z2 = Bz if My != By else Mz
+            z2_step = (Mz - Bz) / (My - By) if My != By else (Tz - Bz) / (Ty - By) 
+            y = By
         
-        #print("Drawing Triangle (%s, %s, %s)"%(T, M, B))
-        color = [ random.randrange(256), random.randrange(256), random.randrange(256) ]
-        for y in range(int(By), int(Ty)):
-            draw_line( int(x1), int(y), int(z1),
-                       int(x2), int(y), int(z2),
-                       screen, zbuffer, color)
-            print("Drawing from [%s, %s, %s] to [%s, %s, %s]"%(x1, y, z1, x2, y, z2))
-
-            if (y < My and My - y < 1):
-                x1 = Bx + (My - By) * x1_step
-                x2 = Mx
-                y = My
-                z1 = Bz + (My - By) * z1_step
-                z2 = Bz
-                draw_line(int(x1), int(y), int(z1), int(x2), int(y), int(z2), screen, zbuffer, color)
-
-            if y == My:
-                x2 = Mx
-                z2 = Mz
-                x2_step = (Tx - Mx) / (Ty - My) if Ty != My else (Tx - Bx) / (Ty - By)
-                z2_step = (Tz - Mz) / (Ty - My) if Ty != My else (Tz - Bz) / (Ty - By) 
+            #print("Drawing Triangle (%s, %s, %s)"%(T, M, B))
+            for y in range(int(By), int(Ty)):
+                draw_line( int(x1), int(y), int(z1),
+                           int(x2), int(y), int(z2),
+                           screen, zbuffer, color)
+                #print("Drawing from [%s, %s, %s] to [%s, %s, %s]"%(x1, y, z1, x2, y, z2))
                 
-            x1 += x1_step
-            z1 += z1_step
-            y += 1
-            x2 += x2_step
-            z2 += z2_step
+                if (y < My and My - y < 1):
+                    x1 = Bx + (My - By) * x1_step
+                    y = My
+                    z1 = Bz + (My - By) * z1_step
+                    draw_line(int(x1), int(y), int(z1), int(x2), int(y), int(z2), screen, zbuffer, color)
+
+                if y == My:
+                    x2 = Mx
+                    z2 = Mz
+                    x2_step = (Tx - Mx) / (Ty - My) if Ty != My else (Tx - Bx) / (Ty - By)
+                    z2_step = (Tz - Mz) / (Ty - My) if Ty != My else (Tz - Bz) / (Ty - By) 
+                
+                x1 += x1_step
+                z1 += z1_step
+                y += 1
+                x2 += x2_step
+                z2 += z2_step
 
 
         
