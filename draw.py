@@ -2,24 +2,73 @@ from display import *
 from matrix import *
 from math import *
 from gmath import *
+import random
 
+
+def getCoords(polygon):
+    return (polygon[1], polygon[2])
 
 def scanline_convert(polygons, i, screen, zbuffer):
     for i in range(0, len(polygons), 3):
-        M = polygons[i]
-        N = polygons[i+1]
-        P = polygons[i+2]
 
+        sortedList = sorted([polygons[i], polygons[i+1], polygons[i+2]], key = getCoords)
+        
+        T = sortedList[2]
+        M = sortedList[1]
+        B = sortedList[0]
+        
+        Tx = T[0]
+        Bx = B[0]
+        Mx = M[0]
+
+        Ty = T[1]
+        By = B[1]
         My = M[1]
-        Ny = N[1]
-        Py = P[1]
 
-        T = M if My == max( max(My, Ny), Py ) else N if Ny == max( max(My, Ny), Py) else P
-        B = M if My == min( min(My, Ny), Py ) else N if Ny == min( min(My, Ny), Py) else P
-        M = M if T == N and B == P else N if T == M and B == P else P
+        Tz = T[2]
+        Bz = B[2]
+        Mz = M[2]
+
+        x1 = Bx
+        x1_step = (Tx - Bx) / (Ty - By)
+        x2 = Bx if My != By else Mx
+        x2_step = (Mx - Bx) / (My - By) if My != By else (Tx - Bx) / (Ty - By)
+        z1 = Bz 
+        z1_step = (Tz - Bz) / (Ty - By)
+        z2 = Bz if My != By else Mz
+        z2_step = (Mz - Bz) / (My - By) if My != By else (Tz - Bz) / (Ty - By) 
+        y = By
+        
+        #print("Drawing Triangle (%s, %s, %s)"%(T, M, B))
+        color = [ random.randrange(256), random.randrange(256), random.randrange(256) ]
+        for y in range(int(By), int(Ty)):
+            draw_line( int(x1), int(y), int(z1),
+                       int(x2), int(y), int(z2),
+                       screen, zbuffer, color)
+            print("Drawing from [%s, %s, %s] to [%s, %s, %s]"%(x1, y, z1, x2, y, z2))
+
+            if (y < My and My - y < 1):
+                x1 = Bx + (My - By) * x1_step
+                x2 = Mx
+                y = My
+                z1 = Bz + (My - By) * z1_step
+                z2 = Bz
+                draw_line(int(x1), int(y), int(z1), int(x2), int(y), int(z2), screen, zbuffer, color)
+
+            if y == My:
+                x2 = Mx
+                z2 = Mz
+                x2_step = (Tx - Mx) / (Ty - My) if Ty != My else (Tx - Bx) / (Ty - By)
+                z2_step = (Tz - Mz) / (Ty - My) if Ty != My else (Tz - Bz) / (Ty - By) 
+                
+            x1 += x1_step
+            z1 += z1_step
+            y += 1
+            x2 += x2_step
+            z2 += z2_step
+
 
         
-
 
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x0, y0, z0);
@@ -37,30 +86,30 @@ def draw_polygons( matrix, screen, zbuffer, color ):
         normal = calculate_normal(matrix, point)[:]
         #print normal
         if normal[2] > 0:
-            #scanline_convert(matrix, point, screen, zbuffer)            
-            draw_line( int(matrix[point][0]),
-                       int(matrix[point][1]),
-                       matrix[point][2],
-                       int(matrix[point+1][0]),
-                       int(matrix[point+1][1]),
-                       matrix[point+1][2],
-                       screen, zbuffer, color)
-            draw_line( int(matrix[point+2][0]),
-                       int(matrix[point+2][1]),
-                       matrix[point+2][2],
-                       int(matrix[point+1][0]),
-                       int(matrix[point+1][1]),
-                       matrix[point+1][2],
-                       screen, zbuffer, color)
-            draw_line( int(matrix[point][0]),
-                       int(matrix[point][1]),
-                       matrix[point][2],
-                       int(matrix[point+2][0]),
-                       int(matrix[point+2][1]),
-                       matrix[point+2][2],
-                       screen, zbuffer, color)    
+            scanline_convert(matrix, point, screen, zbuffer)            
+            #draw_line( int(matrix[point][0]),
+            #           int(matrix[point][1]),
+            #           matrix[point][2],
+            #           int(matrix[point+1][0]),
+            #           int(matrix[point+1][1]),
+            #           matrix[point+1][2],
+            #           screen, zbuffer, color)
+            #draw_line( int(matrix[point+2][0]),
+            #           int(matrix[point+2][1]),
+            #           matrix[point+2][2],
+            #           int(matrix[point+1][0]),
+            #           int(matrix[point+1][1]),
+            #           matrix[point+1][2],
+            #           screen, zbuffer, color)
+            #draw_line( int(matrix[point][0]),
+            #           int(matrix[point][1]),
+            #           matrix[point][2],
+            #           int(matrix[point+2][0]),
+            #           int(matrix[point+2][1]),
+            #           matrix[point+2][2],
+            #           screen, zbuffer, color)    
         point+= 3
-
+            
 
 def add_box( polygons, x, y, z, width, height, depth ):
     x1 = x + width
@@ -70,18 +119,18 @@ def add_box( polygons, x, y, z, width, height, depth ):
     #front
     add_polygon(polygons, x, y, z, x1, y1, z, x1, y, z);
     add_polygon(polygons, x, y, z, x, y1, z, x1, y1, z);
-  
+    
     #back
     add_polygon(polygons, x1, y, z1, x, y1, z1, x, y, z1);
     add_polygon(polygons, x1, y, z1, x1, y1, z1, x, y1, z1);
-  
+    
     #right side
     add_polygon(polygons, x1, y, z, x1, y1, z1, x1, y, z1);
     add_polygon(polygons, x1, y, z, x1, y1, z, x1, y1, z1);
     #left side
     add_polygon(polygons, x, y, z1, x, y1, z, x, y, z);
     add_polygon(polygons, x, y, z1, x, y1, z1, x, y1, z);
-  
+    
     #top
     add_polygon(polygons, x, y, z1, x1, y, z, x1, y, z1);
     add_polygon(polygons, x, y, z1, x, y, z, x1, y, z);
@@ -136,7 +185,7 @@ def generate_sphere( cx, cy, cz, r, step ):
     rot_stop = num_steps
     circ_start = 0
     circ_stop = num_steps
-            
+    
     for rotation in range(rot_start, rot_stop):
         rot = step * rotation
         for circle in range(circ_start, circ_stop+1):
@@ -149,7 +198,7 @@ def generate_sphere( cx, cy, cz, r, step ):
             points.append([x, y, z])
             #print 'rotation: %d\tcircle%d'%(rotation, circle)
     return points
-        
+
 def add_torus( edges, cx, cy, cz, r0, r1, step ):
     points = generate_torus(cx, cy, cz, r0, r1, step)
     num_steps = int(1/step+0.1)
@@ -167,8 +216,8 @@ def add_torus( edges, cx, cy, cz, r0, r1, step ):
 	        p1 = p0 - longt;
             else:
 	        p1 = p0 + 1;
-            p2 = (p1 + num_steps) % (num_steps * num_steps);
-            p3 = (p0 + num_steps) % (num_steps * num_steps);
+                p2 = (p1 + num_steps) % (num_steps * num_steps);
+                p3 = (p0 + num_steps) % (num_steps * num_steps);
 
             add_polygon(edges,
                         points[p0][0],
@@ -235,7 +284,7 @@ def add_curve( points, x0, y0, x1, y1, x2, y2, x3, y3, step, curve_type ):
     while t <= 1.00001:
         x = xcoefs[0] * t*t*t + xcoefs[1] * t*t + xcoefs[2] * t + xcoefs[3]
         y = ycoefs[0] * t*t*t + ycoefs[1] * t*t + ycoefs[2] * t + ycoefs[3]
-                
+        
         add_edge(points, x0, y0, 0, x, y, 0)
         x0 = x
         y0 = y
@@ -337,7 +386,7 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
             x+= dx_east
             y+= dy_east
             d+= d_east
-        loop_start+= 1
+            loop_start+= 1
 
     plot( screen, zbuffer, color, x, y, z )
 
