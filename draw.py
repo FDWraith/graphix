@@ -31,48 +31,38 @@ def scanline_convert(polygons, i, screen, zbuffer):
         Bz = B[2]
         Mz = M[2]
 
-        if Ty == By:
-            draw_line(int(Bx), int(By), int(Bz), int(Tx), int(Ty), int(Tz), screen, zbuffer, color)
-            exit
+        y = By
+        z = Bz
+        if Ty != By:
+            dx0 = (Tx - Bx) / (Ty - By)
         else:
+            dx0 = 0
+
+        if My != By:
+            x0 = Bx
             x1 = Bx
-            x1_step = (Tx - Bx) / (Ty - By)
-            x2 = Bx if My != By else Mx
-            x2_step = (Mx - Bx) / (My - By) if My != By else (Tx - Bx) / (Ty - By)
-            z1 = Bz 
-            z1_step = (Tz - Bz) / (Ty - By)
-            z2 = Bz if My != By else Mz
-            z2_step = (Mz - Bz) / (My - By) if My != By else (Tz - Bz) / (Ty - By) 
-            y = By
+        else:
+            x0 = Bx
+            x1 = Mx
+            
+        while( y < Ty ):
+            draw_line( int(x0), int(y), int(z), int(x1), int(y), int(z), screen, zbuffer, color )
+
+            if y < My:
+                if My != By:
+                    dx1 = (Mx - Bx) / (My - By)
+                else:
+                    dx1 = (Tx - Bx) / (Ty - By)
+            else:
+                if My != Ty:
+                    dx1 = (Tx - Mx) / (Ty - My)
+                else:
+                    dx1 = (Tx - Bx) / (Ty - By)
+
+            y += 1
+            x0 += dx0
+            x1 += dx1
         
-            #print("Drawing Triangle (%s, %s, %s)"%(T, M, B))
-            for y in range(int(By), int(Ty)):
-                draw_line( int(x1), int(y), int(z1),
-                           int(x2), int(y), int(z2),
-                           screen, zbuffer, color)
-                #print("Drawing from [%s, %s, %s] to [%s, %s, %s]"%(x1, y, z1, x2, y, z2))
-                
-                if (y < My and My - y < 1):
-                    x1 = Bx + (My - By) * x1_step
-                    y = My
-                    z1 = Bz + (My - By) * z1_step
-                    draw_line(int(x1), int(y), int(z1), int(x2), int(y), int(z2), screen, zbuffer, color)
-
-                if y == My:
-                    x2 = Mx
-                    z2 = Mz
-                    x2_step = (Tx - Mx) / (Ty - My) if Ty != My else (Tx - Bx) / (Ty - By)
-                    z2_step = (Tz - Mz) / (Ty - My) if Ty != My else (Tz - Bz) / (Ty - By) 
-                
-                x1 += x1_step
-                z1 += z1_step
-                y += 1
-                x2 += x2_step
-                z2 += z2_step
-
-
-        
-
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x0, y0, z0);
     add_point(polygons, x1, y1, z1);
