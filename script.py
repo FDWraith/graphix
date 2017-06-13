@@ -66,7 +66,7 @@ def first_pass( commands ):
   ===================="""
 def second_pass( commands, num_frames ):
     frames = [ {} for i in range(num_frames) ]
-
+    
     for command in commands:
         if command[0] == 'vary':
             knob_name = command[1]
@@ -117,8 +117,16 @@ def run(filename):
     #print frames
     step = 0.1
 
+    print commands
     print symbols
 
+    sources = [ symbols[i][1] for i in symbols if symbols[i][0] == "light" ]
+
+    if "shading" in symbols:
+        shading_type = symbols['shading'][1]
+
+    #print shading_type
+    
     for f in range(num_frames):
 
         tmp = new_matrix()
@@ -136,7 +144,7 @@ def run(filename):
                 #print '\tkob: ' + knob + '\tvalue: ' + str(frame[knob])
                 
         for command in commands:
-            #print command
+            print command
             c = command[0]
             args = command[1:]
             knob_value = 1
@@ -152,19 +160,28 @@ def run(filename):
                         args[0], args[1], args[2],
                         args[3], args[4], args[5])
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zb, color)
+                if command[-1]:
+                    draw_polygons(tmp, screen, zb, color, symbols[command[-1]][1], sources, shading_type)
+                else:
+                    draw_polygons(tmp, screen, zb, color)
                 tmp = []
             elif c == 'sphere':
                 add_sphere(tmp,
                            args[0], args[1], args[2], args[3], step)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zb, color)
+                if command[-1]:
+                    draw_polygons(tmp, screen, zb, color, symbols[command[-1]][1], sources, shading_type)
+                else:
+                    draw_polygons(tmp, screen, zb, color)
                 tmp = []
             elif c == 'torus':
                 add_torus(tmp,
                           args[0], args[1], args[2], args[3], args[4], step)
                 matrix_mult( stack[-1], tmp )
-                draw_polygons(tmp, screen, zb, color)
+                if command[-1]:
+                    draw_polygons(tmp, screen, zb, color, symbols[command[-1]][1], sources, shading_type)
+                else:
+                    draw_polygons(tmp, screen, zb, color)
                 tmp = []
             elif c == 'move':
                 if command[-1]:

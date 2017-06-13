@@ -1,0 +1,25 @@
+shading flat
+
+ambient 255 165 0
+light l1 0 1 1 255 165 0
+constants white 0.25 0.5 0.25 0.25 0.5 0.25 0.25 0.5 0.25
+constants yellow 0.3 0.7 0 0.3 0.7 0 0.3 0.7 0
+    
+basename something
+frames 30
+
+push
+move 250 250 0
+push
+rotate y 360 spinny
+rotate x 360 slowspin
+sphere white 0 0 0 50
+pop
+push
+rotate z -360 spinny
+rotate x 360 spinny
+sphere yellow 0 120 0 30
+    
+vary spinny 0 14 0 1
+vary spinny 15 29 1 0
+vary slowspin 0 29 0 1

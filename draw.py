@@ -8,11 +8,8 @@ import random
 def getCoords(polygon):
     return (polygon[1], polygon[2])
 
-def scanline_convert(polygons, i, screen, zbuffer):
-    for i in range(0, len(polygons), 3):
-
+def scanline_convert(polygons, i, screen, zbuffer, shading_type, color):
         sortedList = sorted([polygons[i], polygons[i+1], polygons[i+2]], key = getCoords)
-        color = [ random.randrange(256), random.randrange(256), random.randrange(256) ]
         #print sortedList
         
         T = sortedList[2]
@@ -51,6 +48,7 @@ def scanline_convert(polygons, i, screen, zbuffer):
             z0 = Bz
             z1 = Mz
 
+        print color
         #print("Drawing a Triangle [%s,%s,%s],[%s,%s,%s],[%s,%s,%s]"%(Tx,Ty,Tz,Mx,My,Mz,Bx,By,Bz))
         while( y < Ty ):
             draw_line( x0, y, z0, x1, y, z1, screen, zbuffer, color )
@@ -80,8 +78,9 @@ def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x0, y0, z0);
     add_point(polygons, x1, y1, z1);
     add_point(polygons, x2, y2, z2);
-
-def draw_polygons( matrix, screen, zbuffer, color ):
+    
+    
+def draw_polygons( matrix, screen, zbuffer, color, constants = {}, sources = [], shading_type = "" ):
     if len(matrix) < 2:
         print 'Need at least 3 points to draw'
         return
@@ -92,8 +91,14 @@ def draw_polygons( matrix, screen, zbuffer, color ):
         normal = calculate_normal(matrix, point)[:]
         #print normal
         if normal[2] > 0:
-            scanline_convert(matrix, point, screen, zbuffer)            
-            color = [0, 0, 0]
+            color = [ random.randrange(256), random.randrange(256), random.randrange(256) ]
+            #print shading_type
+            if shading_type == "flat":
+                #print constants
+                color = getTotalColor(normal, constants, sources)
+                #print color
+            #print color
+            scanline_convert(matrix, point, screen, zbuffer, shading_type, color[:])            
             #draw_line( int(matrix[point][0]),
             #           int(matrix[point][1]),
             #           matrix[point][2],
