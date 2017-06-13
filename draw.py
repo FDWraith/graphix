@@ -23,45 +23,58 @@ def scanline_convert(polygons, i, screen, zbuffer):
         Bx = B[0]
         Mx = M[0]
 
-        Ty = T[1]
-        By = B[1]
-        My = M[1]
+        Ty = int(T[1])
+        By = int(B[1])
+        My = int(M[1])
 
         Tz = T[2]
         Bz = B[2]
         Mz = M[2]
 
         y = By
-        z = Bz
+
         if Ty != By:
             dx0 = (Tx - Bx) / (Ty - By)
+            dz0 = (Tz - Bz) / (Ty - By)
         else:
-            dx0 = 0
-
+            dx0 = 0#(Mx - Bx) / (My - By)
+            dz0 = 0#(Mz - Bz) / (My - By)
+            
         if My != By:
             x0 = Bx
             x1 = Bx
+            z0 = Bz
+            z1 = Bz
         else:
             x0 = Bx
             x1 = Mx
-            
-        while( y < Ty ):
-            draw_line( int(x0), int(y), int(z), int(x1), int(y), int(z), screen, zbuffer, color )
+            z0 = Bz
+            z1 = Mz
 
+        #print("Drawing a Triangle [%s,%s,%s],[%s,%s,%s],[%s,%s,%s]"%(Tx,Ty,Tz,Mx,My,Mz,Bx,By,Bz))
+        while( y < Ty ):
+            draw_line( x0, y, z0, x1, y, z1, screen, zbuffer, color )
+            #print("Drawing from [%s,%s,%s] to [%s,%s,%s]"%(x0, y, z0, x1, y, z1))
             if y < My:
                 if My != By:
                     dx1 = (Mx - Bx) / (My - By)
+                    dz1 = (Mz - Bz) / (My - By)
                 else:
-                    dx1 = (Tx - Bx) / (Ty - By)
+                    dx1 = (Tx - Mx) / (Ty - My)
+                    dz1 = (Tz - Mz) / (Ty - My)
             else:
                 if My != Ty:
                     dx1 = (Tx - Mx) / (Ty - My)
+                    dz1 = (Tz - Mz) / (Ty - My)
                 else:
                     dx1 = (Tx - Bx) / (Ty - By)
+                    dz1 = (Tz - Bz) / (Ty - By)
 
             y += 1
             x0 += dx0
             x1 += dx1
+            z0 += dz0
+            z1 += dz1
         
 def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point(polygons, x0, y0, z0);
@@ -80,6 +93,7 @@ def draw_polygons( matrix, screen, zbuffer, color ):
         #print normal
         if normal[2] > 0:
             scanline_convert(matrix, point, screen, zbuffer)            
+            color = [0, 0, 0]
             #draw_line( int(matrix[point][0]),
             #           int(matrix[point][1]),
             #           matrix[point][2],
@@ -369,7 +383,7 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
             loop_end = y
 
     while ( loop_start < loop_end ):
-        plot( screen, zbuffer, color, x, y, z )
+        plot( screen, zbuffer, color, int(x), int(y), z )
         if ( (wide and ((A > 0 and d > 0) or (A < 0 and d < 0))) or
              (tall and ((A > 0 and d < 0) or (A < 0 and d > 0 )))):
             x+= dx_northeast
@@ -381,6 +395,6 @@ def draw_line( x0, y0, z0, x1, y1, z1, screen, zbuffer, color ):
             d+= d_east
             loop_start+= 1
 
-    plot( screen, zbuffer, color, x, y, z )
+    plot( screen, zbuffer, color, int(x), int(y), z )
 
     
